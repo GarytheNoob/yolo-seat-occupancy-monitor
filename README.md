@@ -194,6 +194,15 @@ The `config.json` file contains:
 - Lower fps_target to 1
 - Ensure adequate cooling (RPi 5 can throttle under load)
 
+## Future Enhancements
+
+Potential improvements for future versions:
+
+1. **Reserved Seat Detection**: Detect books, bags, or personal items on unoccupied seats to mark them as "RESERVED" instead of "EMPTY"
+2. **Web Interface**: Real-time web dashboard for remote monitoring
+3. **Occupancy Analytics**: Track usage patterns and statistics over time
+4. **Multi-Camera Support**: Monitor multiple areas simultaneously
+
 ## Project Structure
 
 ```
@@ -208,6 +217,44 @@ yolo-seat-occupancy-monitor/
 └── requirements.txt      # Python dependencies
 ```
 
+## References
+
+### Technology Stack
+
+- **Ultralytics YOLOv8**: https://github.com/ultralytics/ultralytics
+  - Official YOLOv8 implementation and documentation
+  - Model: YOLOv8n (nano) for optimal Raspberry Pi performance
+
+- **OpenCV**: https://opencv.org/
+  - Computer vision library for camera capture and image processing
+  - Documentation: https://docs.opencv.org/
+
+- **PyTorch**: https://pytorch.org/
+  - Deep learning framework (CPU-only for Raspberry Pi)
+  - Download CPU wheels: https://download.pytorch.org/whl/cpu
+
+- **Raspberry Pi**: https://www.raspberrypi.com/products/raspberry-pi-5/
+  - Hardware platform: Raspberry Pi 5
+  
+- **Piwheels**: https://www.piwheels.org/
+  - Pre-built ARM wheels for faster installation on Raspberry Pi
+
+### Dataset
+
+- **COCO Dataset**: https://cocodataset.org/
+  - Pre-trained YOLOv8 model trained on COCO dataset
+  - Includes "person" class for occupancy detection
+
 ## License
 
 Part of ENGG1101 group project. For educational purposes.
+
+## Acknowledgments
+
+This project was developed for ENGG1101 "Engineering Challenge" at the University of Hong Kong.
+
+**Technologies used:**
+- Ultralytics YOLOv8 for object detection
+- OpenCV for computer vision
+- PyTorch for deep learning
+- Raspberry Pi 5 for edge deployment
