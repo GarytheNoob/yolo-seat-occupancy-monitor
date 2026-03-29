@@ -26,6 +26,8 @@ A real-time seat occupancy monitoring system using YOLOv8 person detection and c
 
 ## Installation
 
+### Standard Installation
+
 1. Clone this repository:
 ```bash
 cd yolo-seat-occupancy-monitor
@@ -37,6 +39,24 @@ pip install -r requirements.txt
 ```
 
 Note: On first run, YOLOv8n model (~6MB) will be automatically downloaded.
+
+### Raspberry Pi Installation
+
+For Raspberry Pi, follow these steps to avoid installation issues:
+
+1. Update pip and build tools:
+```bash
+python3 -m pip install --upgrade pip setuptools wheel
+```
+
+2. Install dependencies using piwheels (pre-built ARM wheels):
+```bash
+pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
+```
+
+Note: We use `opencv-python-headless` for Raspberry Pi compatibility (lighter weight, no GUI dependencies).
+
+**Important for Raspberry Pi:** If running headless (no monitor), you'll need to manually edit `config.json` to define seat coordinates. The `setup_helper.py` tool requires a display. Alternatively, run setup_helper.py on a development machine with the same camera, or connect a monitor temporarily for initial setup.
 
 ## Quick Start
 
@@ -112,18 +132,29 @@ The `config.json` file contains:
 
 ## Troubleshooting
 
+**pip installation fails on Raspberry Pi:**
+- Error: `Cannot import 'setuptools.build_meta'`
+- Solution: Upgrade pip first, then use piwheels
+  ```bash
+  python3 -m pip install --upgrade pip setuptools wheel
+  pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
+  ```
+
 **Camera not found:**
 - Check camera is connected: `ls /dev/video*`
 - Try different camera source in config.json (0, 1, 2, etc.)
+- On RPi, ensure camera is enabled: `sudo raspi-config` → Interface Options → Camera
 
 **YOLOv8 model download fails:**
 - Ensure internet connection on first run
 - Model will be cached for subsequent runs
+- Location: `~/.cache/ultralytics/`
 
 **Performance issues on Raspberry Pi:**
 - Already using YOLOv8n (fastest variant)
 - Reduce resolution in config.json (e.g., 320x240)
 - Lower fps_target to 1
+- Ensure adequate cooling (RPi 5 can throttle under load)
 
 ## Project Structure
 
