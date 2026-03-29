@@ -42,19 +42,29 @@ Note: On first run, YOLOv8n model (~6MB) will be automatically downloaded.
 
 ### Raspberry Pi Installation
 
-For Raspberry Pi, follow these steps to avoid installation issues:
+For Raspberry Pi, follow these steps carefully to avoid installation issues:
 
-1. Update pip and build tools:
+**Important:** This project runs on CPU only - **NO NVIDIA CUDA required**. PyTorch will run in CPU mode on Raspberry Pi.
+
+1. Update pip and build tools (fixes `setuptools.build_meta` error):
 ```bash
 python3 -m pip install --upgrade pip setuptools wheel
 ```
 
-2. Install dependencies using piwheels (pre-built ARM wheels):
+2. Install PyTorch with CPU-only support (lightweight, ~200MB vs ~2GB with CUDA):
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+3. Install remaining dependencies using piwheels (pre-built ARM wheels):
 ```bash
 pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
 ```
 
-Note: We use `opencv-python-headless` for Raspberry Pi compatibility (lighter weight, no GUI dependencies).
+**Notes:**
+- We use `opencv-python-headless` for Raspberry Pi compatibility (lighter weight, no GUI dependencies)
+- PyTorch CPU-only version is sufficient for YOLO inference at 1-2 FPS
+- Total installation size: ~500MB (vs 2-3GB with CUDA)
 
 **Important for Raspberry Pi:** If running headless (no monitor), you'll need to manually edit `config.json` to define seat coordinates. The `setup_helper.py` tool requires a display. Alternatively, run setup_helper.py on a development machine with the same camera, or connect a monitor temporarily for initial setup.
 
@@ -134,11 +144,23 @@ The `config.json` file contains:
 
 **pip installation fails on Raspberry Pi:**
 - Error: `Cannot import 'setuptools.build_meta'`
-- Solution: Upgrade pip first, then use piwheels
+- **Root cause:** Outdated pip/setuptools, or PyTorch trying to install CUDA version
+- **Solution:** Follow the 3-step Raspberry Pi installation above:
   ```bash
+  # Step 1: Upgrade pip
   python3 -m pip install --upgrade pip setuptools wheel
+  
+  # Step 2: Install CPU-only PyTorch first
+  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+  
+  # Step 3: Install remaining dependencies
   pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
   ```
+
+**CUDA/GPU errors on Raspberry Pi:**
+- **You don't need CUDA!** This project runs on CPU only
+- Make sure you installed PyTorch with `--index-url https://download.pytorch.org/whl/cpu`
+- The CPU version is faster to install and takes less space (~200MB vs ~2GB)
 
 **Camera not found:**
 - Check camera is connected: `ls /dev/video*`
