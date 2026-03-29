@@ -1,0 +1,30 @@
+{
+  "camera": {
+    "source": 0,
+    "width": 640,
+    "height": 480,
+    "fps_target": 2
+  },
+  "detection": {
+    "confidence_threshold": 0.5,
+    "model": "yolov8n.pt"
+  },
+  "seats": [
+    {
+      "id": 1,
+      "label": "Seat 1",
+      "x1": 100,
+      "y1": 100,
+      "x2": 250,
+      "y2": 300
+    },
+    {
+      "id": 2,
+      "label": "Seat 2",
+      "x1": 400,
+      "y1": 100,
+      "x2": 550,
+      "y2": 300
+    }
+  ]
+}
