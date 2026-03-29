@@ -46,6 +46,22 @@ For Raspberry Pi, follow these steps carefully to avoid installation issues:
 
 **Important:** This project runs on CPU only - **NO NVIDIA CUDA required**. PyTorch will run in CPU mode on Raspberry Pi.
 
+#### Option 1: Automated Installation (Recommended)
+
+Run the installation script:
+
+```bash
+bash rpi_install.sh
+```
+
+This script will automatically:
+- Upgrade pip, setuptools, and wheel
+- Install CPU-only PyTorch (~200MB)
+- Install remaining dependencies with piwheels
+- Verify all packages are installed correctly
+
+#### Option 2: Manual Installation
+
 1. Update pip and build tools (fixes `setuptools.build_meta` error):
 ```bash
 python3 -m pip install --upgrade pip setuptools wheel
@@ -187,6 +203,7 @@ yolo-seat-occupancy-monitor/
 ├── detector.py            # YOLOv8 person detection
 ├── occupancy_checker.py   # Seat occupancy logic
 ├── setup_helper.py        # Interactive seat configuration tool
+├── rpi_install.sh         # Automated Raspberry Pi installation script
 ├── config.json           # Configuration file
 └── requirements.txt      # Python dependencies
 ```
