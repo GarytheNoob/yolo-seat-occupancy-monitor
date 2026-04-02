@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Seat Occupancy Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YOLO Seat Occupancy Monitor</h1>
+            <p class="subtitle">Real-time seat monitoring with YOLOv8</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Video Stream Section -->
+            <div class="video-section">
+                <div class="card">
+                    <h2>Live Camera Feed</h2>
+                    <div class="video-container">
+                        <img id="videoStream" src="{{ url_for('video_feed') }}" alt="Video Stream">
+                    </div>
+                    <div class="video-info">
+                        <span id="personCount">Detecting...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Section -->
+            <div class="status-section">
+                <div class="card">
+                    <h2>Seat Status</h2>
+                    <div id="statusContainer">
+                        <div class="loading">Loading status...</div>
+                    </div>
+                    <div class="status-footer">
+                        <span class="timestamp">Last updated: <span id="lastUpdate">--</span></span>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="card legend">
+                    <h3>Legend</h3>
+                    <div class="legend-item">
+                        <span class="status-badge status-empty">EMPTY</span>
+                        <span>Seat is available</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="status-badge status-occupied">OCCUPIED</span>
+                        <span>Seat is taken</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <a href="/configure" class="btn btn-primary">Configure Seats</a>
+            <button onclick="location.reload()" class="btn btn-secondary">Refresh Page</button>
+        </div>
+
+        <footer>
+            <p>ENGG1101 Engineering Challenge - Group J4 - University of Hong Kong</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/monitor.js') }}"></script>
+</body>
+</html>

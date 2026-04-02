@@ -14,6 +14,8 @@ A real-time seat occupancy monitoring system using YOLOv8 person detection and c
 - YOLOv8 person detection with configurable confidence threshold
 - Center-point method for seat occupancy determination
 - Real-time video display with color-coded seat overlays (green = empty, red = occupied)
+- **Web interface** with live video streaming and status dashboard
+- Web-based seat configuration (no monitor required for headless setup!)
 - Headless mode for console-only operation
 - Interactive seat configuration tool
 - Configurable frame rate (default: 2 FPS for Raspberry Pi optimization)
@@ -82,13 +84,53 @@ pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simpl
 - PyTorch CPU-only version is sufficient for YOLO inference at 1-2 FPS
 - Total installation size: ~500MB (vs 2-3GB with CUDA)
 
-**Important for Raspberry Pi:** If running headless (no monitor), you'll need to manually edit `config.json` to define seat coordinates. The `setup_helper.py` tool requires a display. Alternatively, run setup_helper.py on a development machine with the same camera, or connect a monitor temporarily for initial setup.
-
 ## Quick Start
 
-### Step 1: Configure Seats
+### Option A: Web Interface (Recommended)
 
-Run the interactive setup tool to define seat locations:
+The web interface is the easiest way to get started, especially for headless Raspberry Pi setups.
+
+#### 1. Start the Web Server
+
+```bash
+python web_server.py
+```
+
+The server will start on `http://localhost:5000` by default.
+
+#### 2. Access the Interface
+
+**On the same machine:**
+- Open your browser to: http://localhost:5000
+
+**From another device on the same network:**
+- Find your IP address (Raspberry Pi: `hostname -I`)
+- Open browser to: http://[your-ip]:5000
+- Example: http://192.168.1.100:5000
+
+#### 3. Configure Seats
+
+- Click "Configure Seats" button
+- Click "Capture Frame" to get a snapshot
+- Click and drag to draw rectangles around each seat
+- Enter labels for each seat
+- Click "Save Configuration"
+
+#### 4. Monitor Occupancy
+
+- The main page shows live video with seat overlays
+- Real-time status updates every 2 seconds
+- Green = Empty, Red = Occupied
+
+Press Ctrl+C in the terminal to stop the server.
+
+### Option B: Traditional CLI Mode
+
+For advanced users or when you prefer command-line operation:
+
+#### Step 1: Configure Seats (CLI Method)
+
+Run the interactive setup tool to define seat locations (requires display):
 
 ```bash
 python setup_helper.py
@@ -103,7 +145,7 @@ Instructions:
 
 The configuration will be saved to `config.json`.
 
-### Step 2: Run the Monitor
+#### Step 2: Run the Monitor (CLI)
 
 **With display window:**
 ```bash
@@ -121,6 +163,30 @@ Press Ctrl+C to quit.
 ```bash
 python main.py --config custom_config.json
 ```
+
+## Web Interface Details
+
+### Available Pages
+
+- **Main Dashboard** (`/`) - Live video stream and seat status display
+- **Seat Configuration** (`/configure`) - Interactive seat setup tool
+
+### API Endpoints
+
+The web server provides REST API endpoints for integration:
+
+- `GET /api/status` - Current seat statuses and person count
+- `GET /api/seats` - Seat configuration
+- `POST /api/seats` - Update seat configuration
+- `GET /api/snapshot` - Single frame snapshot (JPEG)
+- `GET /api/config` - Full configuration
+- `GET /video_feed` - MJPEG video stream
+
+### Network Access
+
+By default, the server binds to `0.0.0.0:5000` (accessible from any device on your network).
+
+**Security Note:** This is designed for local network use. If you need to expose it to the internet, consider adding authentication.
 
 ## Configuration
 
@@ -199,19 +265,31 @@ The `config.json` file contains:
 Potential improvements for future versions:
 
 1. **Reserved Seat Detection**: Detect books, bags, or personal items on unoccupied seats to mark them as "RESERVED" instead of "EMPTY"
-2. **Web Interface**: Real-time web dashboard for remote monitoring
+2. **WebSocket Support**: More efficient real-time updates (currently uses MJPEG + polling)
 3. **Occupancy Analytics**: Track usage patterns and statistics over time
 4. **Multi-Camera Support**: Monitor multiple areas simultaneously
+5. **User Authentication**: Password protection for web interface
+6. **Historical Data**: Recording and playback of occupancy events
 
 ## Project Structure
 
 ```
 yolo-seat-occupancy-monitor/
-├── main.py                 # Main application
+├── main.py                 # Main application (CLI mode)
+├── web_server.py          # Flask web server (web mode)
 ├── camera.py              # Webcam capture wrapper
 ├── detector.py            # YOLOv8 person detection
 ├── occupancy_checker.py   # Seat occupancy logic
-├── setup_helper.py        # Interactive seat configuration tool
+├── setup_helper.py        # Interactive seat configuration tool (CLI)
+├── templates/             # HTML templates for web interface
+│   ├── index.html        # Main monitoring dashboard
+│   └── configure.html    # Seat configuration page
+├── static/               # Static web assets
+│   ├── css/
+│   │   └── style.css    # Styling
+│   └── js/
+│       ├── monitor.js   # Dashboard JavaScript
+│       └── configure.js # Configuration JavaScript
 ├── rpi_install.sh         # Automated Raspberry Pi installation script
 ├── config.json           # Configuration file
 └── requirements.txt      # Python dependencies
@@ -232,6 +310,10 @@ yolo-seat-occupancy-monitor/
 - **PyTorch**: https://pytorch.org/
   - Deep learning framework (CPU-only for Raspberry Pi)
   - Download CPU wheels: https://download.pytorch.org/whl/cpu
+
+- **Flask**: https://flask.palletsprojects.com/
+  - Lightweight Python web framework for the web interface
+  - Simple, beginner-friendly, perfect for Year 1 students
 
 - **Raspberry Pi**: https://www.raspberrypi.com/products/raspberry-pi-5/
   - Hardware platform: Raspberry Pi 5
@@ -257,4 +339,5 @@ This project was developed for ENGG1101 "Engineering Challenge" at the Universit
 - Ultralytics YOLOv8 for object detection
 - OpenCV for computer vision
 - PyTorch for deep learning
+- Flask for web interface
 - Raspberry Pi 5 for edge deployment
