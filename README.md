@@ -40,7 +40,14 @@ cd yolo-seat-occupancy-monitor
 pip install -r requirements.txt
 ```
 
-Note: On first run, YOLOv8n model (~6MB) will be automatically downloaded.
+3. Create your configuration file:
+```bash
+cp config.example.json config.json
+```
+
+**Note:** `config.json` is gitignored (user-specific). The example file contains default values to get you started. You'll configure your specific seats later using the web interface or setup helper.
+
+**First run:** YOLOv8n model (~6MB) will be automatically downloaded.
 
 ### Raspberry Pi Installation
 
@@ -62,6 +69,11 @@ This script will automatically:
 - Install remaining dependencies with piwheels
 - Verify all packages are installed correctly
 
+Then create your configuration file:
+```bash
+cp config.example.json config.json
+```
+
 #### Option 2: Manual Installation
 
 1. Update pip and build tools (fixes `setuptools.build_meta` error):
@@ -79,12 +91,26 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt --extra-index-url https://www.piwheels.org/simple
 ```
 
+4. Create your configuration file:
+```bash
+cp config.example.json config.json
+```
+
 **Notes:**
 - We use `opencv-python-headless` for Raspberry Pi compatibility (lighter weight, no GUI dependencies)
 - PyTorch CPU-only version is sufficient for YOLO inference at 1-2 FPS
 - Total installation size: ~500MB (vs 2-3GB with CUDA)
 
 ## Quick Start
+
+### Before You Begin
+
+If this is your first time running the project, make sure you have created your configuration file:
+```bash
+cp config.example.json config.json
+```
+
+This creates your personal config file (gitignored) from the example template.
 
 ### Option A: Web Interface (Recommended)
 
@@ -291,9 +317,12 @@ yolo-seat-occupancy-monitor/
 │       ├── monitor.js   # Dashboard JavaScript
 │       └── configure.js # Configuration JavaScript
 ├── rpi_install.sh         # Automated Raspberry Pi installation script
-├── config.json           # Configuration file
+├── config.json           # User configuration (gitignored, create from example)
+├── config.example.json   # Configuration template (commit this)
 └── requirements.txt      # Python dependencies
 ```
+
+**Note:** `config.json` is gitignored to avoid conflicts. Each user creates their own from `config.example.json`.
 
 ## References
 

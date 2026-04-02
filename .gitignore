@@ -12,6 +12,9 @@ models/
 *.pt
 runs/
 
+# User-specific configuration (camera settings, seat coordinates)
+config.json
+
 # IDE
 .vscode/
 .idea/

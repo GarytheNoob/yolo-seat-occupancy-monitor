@@ -7,6 +7,7 @@
 let canvas = null;
 let ctx = null;
 let snapshotImage = null;
+let capturedImage = null;  // Store the loaded snapshot image
 let isDrawing = false;
 let startX = 0;
 let startY = 0;
@@ -90,6 +91,9 @@ async function captureFrame() {
         // Load image
         const img = new Image();
         img.onload = function() {
+            // Store the image for later redraws
+            capturedImage = img;
+            
             // Set canvas size to match image
             canvas.width = img.width;
             canvas.height = img.height;
@@ -201,8 +205,8 @@ function redrawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Redraw snapshot (if exists)
-    if (snapshotImage.src && snapshotImage.complete) {
-        ctx.drawImage(snapshotImage, 0, 0);
+    if (capturedImage) {
+        ctx.drawImage(capturedImage, 0, 0);
     }
     
     // Redraw seats
