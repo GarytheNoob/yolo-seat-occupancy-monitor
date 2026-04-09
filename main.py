@@ -65,8 +65,10 @@ def main():
     camera_height = camera_config.get("height", 480)
     fps_target = camera_config.get("fps_target", 2)
     
-    model_path = detection_config.get("model", "yolov8n.pt")
+    model_path = detection_config.get("model", "yolov8s.pt")
     confidence_threshold = detection_config.get("confidence_threshold", 0.5)
+    detect_items = detection_config.get("detect_items", True)
+    item_confidence_threshold = detection_config.get("item_confidence_threshold", 0.4)
     
     # Load seats
     seats = load_seats(args.config)
@@ -84,7 +86,9 @@ def main():
     print("Loading YOLO model (this may take a moment on first run)...")
     try:
         detector = PersonDetector(model_path=model_path, 
-                                 confidence_threshold=confidence_threshold)
+                                 confidence_threshold=confidence_threshold,
+                                 detect_items=detect_items,
+                                 item_confidence_threshold=item_confidence_threshold)
     except RuntimeError as e:
         print(f"Error: {e}")
         exit(1)
@@ -111,11 +115,11 @@ def main():
                 print("Error: Failed to capture frame")
                 break
             
-            # Detect persons
-            person_detections = detector.detect(frame)
+            # Detect persons and items
+            person_detections, item_detections = detector.detect(frame)
             
             # Check occupancy
-            statuses = check_occupancy(person_detections, seats)
+            statuses = check_occupancy(person_detections, item_detections, seats)
             
             # Print status to console
             print(format_status_line(seats, statuses))
@@ -123,7 +127,7 @@ def main():
             # Display mode
             if not args.headless:
                 # Draw overlay
-                frame_with_overlay = draw_overlay(frame, seats, statuses, person_detections)
+                frame_with_overlay = draw_overlay(frame, seats, statuses, person_detections, item_detections)
                 
                 # Show frame
                 cv2.imshow("Seat Occupancy Monitor", frame_with_overlay)
