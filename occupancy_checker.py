@@ -1,10 +1,16 @@
 """
 Occupancy checker module.
-Checks seat occupancy based on person detections using center-point method.
+Checks seat occupancy based on person and item detections using center-point method.
+Implements tri-state status: EMPTY, OCCUPIED (person), RESERVED (items only).
 """
 
 import json
 import cv2
+
+# Color scheme for seat status visualization (BGR format)
+COLOR_EMPTY = (0, 255, 0)      # Green
+COLOR_OCCUPIED = (0, 0, 255)   # Red
+COLOR_RESERVED = (255, 165, 0) # Blue
 
 
 def load_seats(config_path):
@@ -46,22 +52,25 @@ def is_point_in_seat(px, py, seat):
             seat["y1"] <= py <= seat["y2"])
 
 
-def check_occupancy(person_detections, seats):
+def check_occupancy(person_detections, item_detections, seats):
     """
-    Check which seats are occupied based on person detections.
-    Uses center-point method: if person's center is in seat, seat is occupied.
+    Check seat status based on person and item detections.
+    Uses center-point method: if center is in seat, it occupies/reserves the seat.
+    
+    Priority: Person (OCCUPIED) > Items (RESERVED) > Empty
     
     Args:
         person_detections: List of person detection dicts (from detector.py)
+        item_detections: List of item detection dicts (from detector.py)
         seats: List of seat dicts (from config.json)
     
     Returns:
-        dict: Mapping of seat_id to status ("EMPTY" or "OCCUPIED")
+        dict: Mapping of seat_id to status ("EMPTY", "OCCUPIED", or "RESERVED")
     """
     # Initialize all seats as empty
     statuses = {seat["id"]: "EMPTY" for seat in seats}
     
-    # Check each person
+    # Check each person (highest priority)
     for person in person_detections:
         # Calculate center point of person bounding box
         center_x = (person["x1"] + person["x2"]) / 2
@@ -73,18 +82,34 @@ def check_occupancy(person_detections, seats):
                 statuses[seat["id"]] = "OCCUPIED"
                 break  # One person can only occupy one seat
     
+    # Check each item (second priority, only if seat not already occupied)
+    for item in item_detections:
+        # Calculate center point of item bounding box
+        center_x = (item["x1"] + item["x2"]) / 2
+        center_y = (item["y1"] + item["y2"]) / 2
+        
+        # Check if center point is in any seat
+        for seat in seats:
+            seat_id = seat["id"]
+            # Only mark as reserved if not already occupied by a person
+            if (is_point_in_seat(center_x, center_y, seat) and 
+                statuses[seat_id] != "OCCUPIED"):
+                statuses[seat_id] = "RESERVED"
+                break  # One item reserves one seat
+    
     return statuses
 
 
-def draw_overlay(frame, seats, statuses, person_detections):
+def draw_overlay(frame, seats, statuses, person_detections, item_detections):
     """
     Draw bounding boxes and labels on frame.
     
     Args:
         frame: Input frame (will be modified in-place)
         seats: List of seat dictionaries
-        statuses: Dict mapping seat_id to status
+        statuses: Dict mapping seat_id to status ("EMPTY", "OCCUPIED", or "RESERVED")
         person_detections: List of person detection dicts
+        item_detections: List of item detection dicts
     
     Returns:
         numpy.ndarray: Frame with overlays drawn
@@ -98,7 +123,16 @@ def draw_overlay(frame, seats, statuses, person_detections):
         cv2.putText(frame, f"Person {conf:.2f}", (x1, y1 - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
     
-    # Draw seat bounding boxes (green = empty, red = occupied)
+    # Draw item detections (blue boxes)
+    for item in item_detections:
+        x1, y1, x2, y2 = item["x1"], item["y1"], item["x2"], item["y2"]
+        conf = item["confidence"]
+        
+        cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_RESERVED, 2)
+        cv2.putText(frame, f"Item {conf:.2f}", (x1, y1 - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLOR_RESERVED, 2)
+    
+    # Draw seat bounding boxes with tri-state colors
     for seat in seats:
         x1, y1, x2, y2 = seat["x1"], seat["y1"], seat["x2"], seat["y2"]
         seat_id = seat["id"]
@@ -106,7 +140,12 @@ def draw_overlay(frame, seats, statuses, person_detections):
         status = statuses.get(seat_id, "EMPTY")
         
         # Choose color based on status
-        color = (0, 0, 255) if status == "OCCUPIED" else (0, 255, 0)
+        if status == "OCCUPIED":
+            color = COLOR_OCCUPIED  # Red
+        elif status == "RESERVED":
+            color = COLOR_RESERVED  # Blue
+        else:
+            color = COLOR_EMPTY     # Green
         
         # Draw rectangle
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
