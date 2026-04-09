@@ -98,6 +98,14 @@ header h1 {
     text-align: center;
     font-weight: 500;
     color: #555;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.item-info {
+    color: #2196F3;
+    font-weight: 600;
 }
 
 /* Status Section */
@@ -152,6 +160,11 @@ header h1 {
     background: #e7f5e9;
 }
 
+.seat-item.reserved {
+    border-left-color: #2196F3;
+    background: #e3f2fd;
+}
+
 .seat-label {
     font-weight: 600;
     font-size: 1.1rem;
@@ -173,6 +186,11 @@ header h1 {
 
 .status-occupied {
     background: #dc3545;
+    color: white;
+}
+
+.status-reserved {
+    background: #2196F3;
     color: white;
 }
 
