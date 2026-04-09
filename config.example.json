@@ -7,7 +7,10 @@
   },
   "detection": {
     "confidence_threshold": 0.5,
-    "model": "yolov8n.pt"
+    "model": "yolov8n.pt",
+    "detect_items": true,
+    "item_confidence_threshold": 0.4,
+    "item_classes": [25, 26, 28, 61, 73]
   },
   "seats": [
     {
