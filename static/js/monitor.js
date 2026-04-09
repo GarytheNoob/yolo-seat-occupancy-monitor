@@ -31,8 +31,8 @@ async function updateStatus() {
         // Update seat list
         updateSeatList(data.seats);
         
-        // Update person count
-        updatePersonCount(data.person_count);
+        // Update counts display
+        updateCounts(data.summary);
         
         // Update timestamp
         updateTimestamp(data.timestamp);
@@ -58,8 +58,17 @@ function updateSeatList(seats) {
     let html = '<ul class="seat-list">';
     
     seats.forEach(seat => {
-        const statusClass = seat.status === 'OCCUPIED' ? 'occupied' : 'empty';
-        const statusBadge = seat.status === 'OCCUPIED' ? 'status-occupied' : 'status-empty';
+        // Determine status class and badge class based on tri-state status
+        let statusClass = 'empty';
+        let statusBadge = 'status-empty';
+        
+        if (seat.status === 'OCCUPIED') {
+            statusClass = 'occupied';
+            statusBadge = 'status-occupied';
+        } else if (seat.status === 'RESERVED') {
+            statusClass = 'reserved';
+            statusBadge = 'status-reserved';
+        }
         
         html += `
             <li class="seat-item ${statusClass}">
@@ -75,11 +84,29 @@ function updateSeatList(seats) {
 }
 
 /**
- * Update person count display
+ * Update counts display (people, items, and seat summary)
  */
-function updatePersonCount(count) {
-    const element = document.getElementById('personCount');
-    element.textContent = `${count} person${count !== 1 ? 's' : ''} detected`;
+function updateCounts(summary) {
+    const personCountElement = document.getElementById('personCount');
+    const itemCountElement = document.getElementById('itemCount');
+    
+    if (summary) {
+        // Update person count
+        const personCount = summary.total_people || 0;
+        personCountElement.textContent = `${personCount} person${personCount !== 1 ? 's' : ''} detected`;
+        
+        // Update item count
+        const itemCount = summary.total_items || 0;
+        if (itemCount > 0) {
+            itemCountElement.textContent = ` | ${itemCount} item${itemCount !== 1 ? 's' : ''} detected`;
+            itemCountElement.style.display = 'inline';
+        } else {
+            itemCountElement.style.display = 'none';
+        }
+    } else {
+        personCountElement.textContent = 'Detecting...';
+        itemCountElement.style.display = 'none';
+    }
 }
 
 /**
