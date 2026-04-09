@@ -69,6 +69,8 @@ def initialize_system():
 
     model_path = detection_config.get("model", "yolov8n.pt")
     confidence_threshold = detection_config.get("confidence_threshold", 0.5)
+    detect_items = detection_config.get("detect_items", True)
+    item_confidence_threshold = detection_config.get("item_confidence_threshold", 0.4)
 
     # Load seats
     seats = config.get("seats", [])
@@ -80,16 +82,19 @@ def initialize_system():
     except RuntimeError as e:
         raise RuntimeError(f"Camera initialization failed: {e}")
 
-    # Initialize person detector
+    # Initialize person and item detector
     print("Loading YOLO model (this may take a moment on first run)...")
     try:
         detector = PersonDetector(
-            model_path=model_path, confidence_threshold=confidence_threshold
+            model_path=model_path, 
+            confidence_threshold=confidence_threshold,
+            detect_items=detect_items,
+            item_confidence_threshold=item_confidence_threshold
         )
     except RuntimeError as e:
         raise RuntimeError(f"Detector initialization failed: {e}")
 
-    print(f"System initialized with {len(seats)} seat(s)")
+    print(f"System initialized with {len(seats)} seat(s), item detection {'enabled' if detect_items else 'disabled'}")
 
 
 def generate_frames():
@@ -112,14 +117,14 @@ def generate_frames():
                 time.sleep(frame_delay)
                 continue
 
-            # Detect persons
-            person_detections = detector.detect(frame)
+            # Detect persons and items
+            person_detections, item_detections = detector.detect(frame)
 
-            # Check occupancy
-            statuses = check_occupancy(person_detections, seats)
+            # Check occupancy with tri-state logic
+            statuses = check_occupancy(person_detections, item_detections, seats)
 
             # Draw overlay
-            frame_with_overlay = draw_overlay(frame, seats, statuses, person_detections)
+            frame_with_overlay = draw_overlay(frame, seats, statuses, person_detections, item_detections)
 
             # Encode frame as JPEG
             ret, buffer = cv2.imencode(
@@ -170,7 +175,7 @@ def video_feed():
 def api_status():
     """
     Get current seat occupancy status.
-    Returns JSON with seat statuses and timestamp.
+    Returns JSON with tri-state seat statuses (EMPTY, OCCUPIED, RESERVED) and summary.
     """
     global camera, detector, seats
 
@@ -180,29 +185,49 @@ def api_status():
         if frame is None:
             return jsonify({"error": "Failed to capture frame"}), 500
 
-        # Detect persons
-        person_detections = detector.detect(frame)
+        # Detect persons and items
+        person_detections, item_detections = detector.detect(frame)
 
-        # Check occupancy
-        statuses = check_occupancy(person_detections, seats)
+        # Check occupancy with tri-state logic
+        statuses = check_occupancy(person_detections, item_detections, seats)
 
         # Build response
         seat_statuses = []
+        empty_count = 0
+        occupied_count = 0
+        reserved_count = 0
+        
         for seat in seats:
             seat_id = seat["id"]
+            status = statuses.get(seat_id, "EMPTY")
+            
             seat_statuses.append(
                 {
                     "id": seat_id,
                     "label": seat["label"],
-                    "status": statuses.get(seat_id, "EMPTY"),
+                    "status": status,
                 }
             )
+            
+            # Count statuses
+            if status == "OCCUPIED":
+                occupied_count += 1
+            elif status == "RESERVED":
+                reserved_count += 1
+            else:
+                empty_count += 1
 
         return jsonify(
             {
                 "seats": seat_statuses,
+                "summary": {
+                    "empty": empty_count,
+                    "occupied": occupied_count,
+                    "reserved": reserved_count,
+                    "total_people": len(person_detections),
+                    "total_items": len(item_detections)
+                },
                 "timestamp": datetime.now().isoformat(),
-                "person_count": len(person_detections),
             }
         )
 
