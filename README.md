@@ -19,6 +19,7 @@ A real-time seat occupancy monitoring system using YOLOv8 person detection and c
 - Headless mode for console-only operation
 - Interactive seat configuration tool
 - Configurable frame rate (default: 2 FPS for Raspberry Pi optimization)
+- Manual webcam focus control via the web UI (USB UVC webcams)
 
 ## Requirements
 
@@ -224,6 +225,8 @@ The web server provides REST API endpoints for integration:
 - `GET /api/seats` - Seat configuration
 - `POST /api/seats` - Update seat configuration
 - `GET /api/snapshot` - Single frame snapshot (JPEG)
+- `GET /api/camera` - Camera focus settings and capability info
+- `POST /api/camera/focus` - Update autofocus/focus settings
 - `GET /api/config` - Full configuration
 - `GET /video_feed` - MJPEG video stream
 
@@ -243,7 +246,9 @@ The `config.json` file contains:
     "source": 0, // Camera device index
     "width": 640, // Frame width
     "height": 480, // Frame height
-    "fps_target": 2 // Target frame rate
+    "fps_target": 2, // Target frame rate
+    "autofocus": true, // Enable autofocus (if supported)
+    "focus": 0 // Manual focus value when autofocus is disabled
   },
   "detection": {
     "confidence_threshold": 0.5, // Min confidence for person detection
@@ -299,6 +304,11 @@ The `config.json` file contains:
 - Check camera is connected: `ls /dev/video*`
 - Try different camera source in config.json (0, 1, 2, etc.)
 - On RPi, ensure camera is enabled: `sudo raspi-config` → Interface Options → Camera
+
+**Manual focus not working:**
+
+- USB webcam focus controls depend on the camera driver and OpenCV backend
+- If `autofocus` or `focus` toggles do nothing, your webcam may not expose those controls
 
 **YOLOv8 model download fails:**
 

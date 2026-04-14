@@ -191,6 +191,61 @@
             color: #999;
             font-style: italic;
         }
+
+        .focus-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .focus-panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .focus-controls {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 12px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .focus-controls label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .focus-range {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .focus-range input[type="range"] {
+            width: 100%;
+        }
+
+        .focus-value {
+            font-weight: 600;
+            min-width: 48px;
+            text-align: right;
+        }
+
+        .focus-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .focus-note {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -199,6 +254,25 @@
             <h1>Configure Seats</h1>
             <p class="subtitle">Draw rectangles to define seat positions</p>
         </header>
+
+        <div class="focus-panel">
+            <h2>Camera Focus</h2>
+            <div class="focus-controls">
+                <label for="autofocusToggle">Autofocus</label>
+                <input type="checkbox" id="autofocusToggle" checked>
+
+                <label for="focusSlider">Manual Focus</label>
+                <div class="focus-range">
+                <input type="range" id="focusSlider" min="0" max="255" value="0" step="1">
+                    <span class="focus-value" id="focusValue">0</span>
+                </div>
+            </div>
+            <div class="focus-actions">
+                <button onclick="applyFocusSettings()" class="btn btn-primary">Apply Focus</button>
+                <button onclick="resetFocusSettings()" class="btn btn-secondary">Reset</button>
+            </div>
+            <p class="focus-note" id="focusNote">Focus controls depend on your webcam driver.</p>
+        </div>
 
         <div class="instructions">
             <h2>Instructions</h2>

@@ -66,6 +66,8 @@ def initialize_system():
     camera_source = camera_config.get("source", 0)
     camera_width = camera_config.get("width", 640)
     camera_height = camera_config.get("height", 480)
+    camera_autofocus = camera_config.get("autofocus", True)
+    camera_focus = camera_config.get("focus", 0)
 
     model_path = detection_config.get("model", "yolov8n.pt")
     confidence_threshold = detection_config.get("confidence_threshold", 0.5)
@@ -78,7 +80,13 @@ def initialize_system():
     # Initialize camera
     print("Initializing camera...")
     try:
-        camera = Camera(source=camera_source, width=camera_width, height=camera_height)
+        camera = Camera(
+            source=camera_source,
+            width=camera_width,
+            height=camera_height,
+            autofocus=camera_autofocus,
+            focus=camera_focus,
+        )
     except RuntimeError as e:
         raise RuntimeError(f"Camera initialization failed: {e}")
 
@@ -325,6 +333,89 @@ def api_config():
     """Get full configuration (read-only)."""
     global config
     return jsonify(config)
+
+
+@app.route("/api/camera", methods=["GET"])
+def api_camera_get():
+    """Get current camera focus settings and capability info."""
+    global camera, config
+    camera_config = config.get("camera", {})
+    autofocus = camera_config.get("autofocus", True)
+    focus = camera_config.get("focus", 0)
+
+    autofocus_value = camera.get_autofocus() if camera else None
+    focus_value = camera.get_focus() if camera else None
+
+    return jsonify(
+        {
+            "autofocus": autofocus,
+            "focus": focus,
+            "capabilities": {
+                "autofocus": bool(camera.autofocus_supported) if camera else False,
+                "focus": bool(camera.focus_supported) if camera else False,
+            },
+            "current": {
+                "autofocus": autofocus_value,
+                "focus": focus_value,
+            },
+        }
+    )
+
+
+@app.route("/api/camera/focus", methods=["POST"])
+def api_camera_focus():
+    """Update autofocus and focus settings for the active camera."""
+    global camera, config
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Missing request body"}), 400
+
+        autofocus = data.get("autofocus")
+        focus = data.get("focus")
+
+        if autofocus is None and focus is None:
+            return jsonify({"error": "Provide 'autofocus' and/or 'focus'"}), 400
+
+        camera_config = config.setdefault("camera", {})
+
+        autofocus_applied = None
+        focus_applied = None
+
+        if autofocus is not None:
+            autofocus_value = bool(autofocus)
+            autofocus_applied = camera.set_autofocus(autofocus_value) if camera else False
+            camera_config["autofocus"] = autofocus_value
+
+        if focus is not None:
+            try:
+                focus_value = float(focus)
+            except (TypeError, ValueError):
+                return jsonify({"error": "Invalid focus value"}), 400
+            focus_value = max(0.0, min(255.0, focus_value))
+            focus_applied = camera.set_focus(focus_value) if camera else False
+            camera_config["focus"] = focus_value
+
+        if not save_config(config):
+            return jsonify({"error": "Failed to save configuration"}), 500
+
+        return jsonify(
+            {
+                "success": True,
+                "applied": {
+                    "autofocus": autofocus_applied,
+                    "focus": focus_applied,
+                },
+                "current": {
+                    "autofocus": camera.get_autofocus() if camera else None,
+                    "focus": camera.get_focus() if camera else None,
+                },
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def main():

@@ -63,6 +63,8 @@ def main():
     camera_source = camera_config.get("source", 0)
     camera_width = camera_config.get("width", 640)
     camera_height = camera_config.get("height", 480)
+    camera_autofocus = camera_config.get("autofocus", True)
+    camera_focus = camera_config.get("focus", 0)
     fps_target = camera_config.get("fps_target", 2)
     
     model_path = detection_config.get("model", "yolov8s.pt")
@@ -77,7 +79,13 @@ def main():
     # Initialize camera
     print("Initializing camera...")
     try:
-        camera = Camera(source=camera_source, width=camera_width, height=camera_height)
+        camera = Camera(
+            source=camera_source,
+            width=camera_width,
+            height=camera_height,
+            autofocus=camera_autofocus,
+            focus=camera_focus,
+        )
     except RuntimeError as e:
         print(f"Error: {e}")
         exit(1)

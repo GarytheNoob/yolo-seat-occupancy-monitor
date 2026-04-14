@@ -20,6 +20,14 @@ let nextSeatId = 1;
 // Camera dimensions
 let cameraWidth = 640;
 let cameraHeight = 480;
+let focusConfig = {
+    autofocus: true,
+    focus: 0,
+    capabilities: {
+        autofocus: false,
+        focus: false
+    }
+};
 
 /**
  * Initialize the page
@@ -36,6 +44,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load existing configuration
     loadExistingConfiguration();
+    loadCameraSettings();
+
+    const focusSlider = document.getElementById('focusSlider');
+    const focusValue = document.getElementById('focusValue');
+    const autofocusToggle = document.getElementById('autofocusToggle');
+
+    if (focusSlider && focusValue) {
+        focusSlider.addEventListener('input', () => {
+            focusValue.textContent = focusSlider.value;
+        });
+    }
+
+    if (autofocusToggle) {
+        autofocusToggle.addEventListener('change', () => {
+            updateFocusControlState();
+        });
+    }
     
     console.log('Configuration page initialized');
 });
@@ -71,6 +96,131 @@ async function loadExistingConfiguration() {
         console.error('Error loading configuration:', error);
         showStatus('Could not load existing configuration', 'error');
     }
+}
+
+async function loadCameraSettings() {
+    try {
+        const response = await fetch('/api/camera');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        focusConfig = {
+            autofocus: data.autofocus,
+            focus: data.focus,
+            capabilities: data.capabilities || { autofocus: false, focus: false },
+            current: data.current || {}
+        };
+
+        const autofocusToggle = document.getElementById('autofocusToggle');
+        const focusSlider = document.getElementById('focusSlider');
+        const focusValue = document.getElementById('focusValue');
+
+        if (autofocusToggle) {
+            autofocusToggle.checked = Boolean(focusConfig.autofocus);
+        }
+
+        if (focusSlider) {
+            focusSlider.value = Number(focusConfig.focus || 0);
+        }
+
+        if (focusValue) {
+            focusValue.textContent = focusSlider ? focusSlider.value : '0';
+        }
+
+        updateFocusControlState();
+    } catch (error) {
+        console.error('Error loading camera settings:', error);
+        showStatus('Could not load camera focus settings', 'error');
+    }
+}
+
+function updateFocusControlState() {
+    const autofocusToggle = document.getElementById('autofocusToggle');
+    const focusSlider = document.getElementById('focusSlider');
+    const focusNote = document.getElementById('focusNote');
+    const autofocusEnabled = autofocusToggle ? autofocusToggle.checked : true;
+
+    if (focusSlider) {
+        focusSlider.disabled = autofocusEnabled || !focusConfig.capabilities.focus;
+    }
+
+    if (autofocusToggle) {
+        autofocusToggle.disabled = !focusConfig.capabilities.autofocus;
+    }
+
+    if (focusNote) {
+        if (!focusConfig.capabilities.autofocus && !focusConfig.capabilities.focus) {
+            focusNote.textContent = 'Focus controls are not supported by this webcam.';
+        } else if (autofocusEnabled) {
+            focusNote.textContent = 'Autofocus is on. Disable it to adjust focus manually.';
+        } else {
+            focusNote.textContent = 'Manual focus enabled. Adjust the slider and apply.';
+        }
+    }
+}
+
+async function applyFocusSettings() {
+    const autofocusToggle = document.getElementById('autofocusToggle');
+    const focusSlider = document.getElementById('focusSlider');
+
+    if (!autofocusToggle || !focusSlider) {
+        return;
+    }
+
+    showStatus('Applying focus settings...', 'info');
+
+    try {
+        const response = await fetch('/api/camera/focus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                autofocus: autofocusToggle.checked,
+                focus: Number(focusSlider.value)
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            if (result.applied && (result.applied.autofocus === false || result.applied.focus === false)) {
+                showStatus('Focus settings saved, but the webcam may ignore them.', 'info');
+            } else {
+                showStatus('Focus settings applied', 'success');
+            }
+            focusConfig.autofocus = autofocusToggle.checked;
+            focusConfig.focus = Number(focusSlider.value);
+        } else {
+            showStatus('Failed to apply focus settings', 'error');
+        }
+    } catch (error) {
+        console.error('Error applying focus settings:', error);
+        showStatus('Failed to apply focus settings', 'error');
+    }
+}
+
+function resetFocusSettings() {
+    const autofocusToggle = document.getElementById('autofocusToggle');
+    const focusSlider = document.getElementById('focusSlider');
+    const focusValue = document.getElementById('focusValue');
+
+    if (!autofocusToggle || !focusSlider) {
+        return;
+    }
+
+    autofocusToggle.checked = Boolean(focusConfig.autofocus);
+    focusSlider.value = Number(focusConfig.focus || 0);
+    if (focusValue) {
+        focusValue.textContent = focusSlider.value;
+    }
+    updateFocusControlState();
+    showStatus('Focus settings reset', 'info');
 }
 
 /**

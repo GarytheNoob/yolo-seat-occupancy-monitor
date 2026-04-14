@@ -3,7 +3,9 @@
     "source": 0,
     "width": 640,
     "height": 480,
-    "fps_target": 2
+    "fps_target": 2,
+    "autofocus": true,
+    "focus": 0
   },
   "detection": {
     "confidence_threshold": 0.5,
