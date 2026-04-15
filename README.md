@@ -50,7 +50,7 @@ cp config.example.json config.json
 
 **Note:** `config.json` is gitignored (user-specific). The example file contains default values to get you started. You'll configure your specific seats later using the web interface or setup helper.
 
-**First run:** YOLOv8n model (~6MB) will be automatically downloaded.
+**First run:** YOLOv8s model (~22MB) will be automatically downloaded.
 
 ### Raspberry Pi Installation
 
@@ -159,7 +159,7 @@ The server will start on `http://localhost:1101` by default.
 
 - The main page shows live video with seat overlays
 - Real-time status updates every 2 seconds
-- Green = Empty, Red = Occupied
+- Green = Empty, Red = Occupied, Blue = Reserved
 
 Press Ctrl+C in the terminal to stop the server.
 
@@ -247,7 +247,10 @@ The `config.json` file contains:
   },
   "detection": {
     "confidence_threshold": 0.5, // Min confidence for person detection
-    "model": "yolov8n.pt" // YOLO model (nano for speed)
+    "model": "yolov8s.pt", // YOLO model
+    "detect_items": true, // Whether to detect items (bags, etc.)
+    "item_confidence_threshold": 0.4, // Confidence threshold for item detection
+    "item_classes": [25, 26, 28, 61, 73] // COCO classes for items (backpack, handbag, etc.)
   },
   "seats": [
     {
@@ -264,7 +267,7 @@ The `config.json` file contains:
 
 ## How It Works
 
-1. **Person Detection**: Uses pre-trained YOLOv8n to detect persons in each frame
+1. **Person Detection**: Uses pre-trained YOLOv8s to detect persons in each frame
 2. **Occupancy Check**: Calculates the center point of each detected person
 3. **Seat Assignment**: If a person's center point falls within a seat's bounding box, the seat is marked as OCCUPIED
 4. **Visualization**: Displays color-coded overlays (green = empty, red = occupied) and prints status to console
@@ -306,23 +309,15 @@ The `config.json` file contains:
 - Model will be cached for subsequent runs
 - Location: `~/.cache/ultralytics/`
 
-**Performance issues on Raspberry Pi:**
-
-- Already using YOLOv8n (fastest variant)
-- Reduce resolution in config.json (e.g., 320x240)
-- Lower fps_target to 1
-- Ensure adequate cooling (RPi 5 can throttle under load)
-
 ## Future Enhancements
 
 Potential improvements for future versions:
 
-1. **Reserved Seat Detection**: Detect books, bags, or personal items on unoccupied seats to mark them as "RESERVED" instead of "EMPTY"
-2. **WebSocket Support**: More efficient real-time updates (currently uses MJPEG + polling)
-3. **Occupancy Analytics**: Track usage patterns and statistics over time
-4. **Multi-Camera Support**: Monitor multiple areas simultaneously
-5. **User Authentication**: Password protection for web interface
-6. **Historical Data**: Recording and playback of occupancy events
+1. **WebSocket Support**: More efficient real-time updates (currently uses MJPEG + polling)
+1. **Occupancy Analytics**: Track usage patterns and statistics over time
+1. **Multi-Camera Support**: Monitor multiple areas simultaneously
+1. **User Authentication**: Password protection for web interface
+1. **Historical Data**: Recording and playback of occupancy events
 
 ## Project Structure
 
@@ -357,7 +352,7 @@ yolo-seat-occupancy-monitor/
 
 - **Ultralytics YOLOv8**: https://github.com/ultralytics/ultralytics
   - Official YOLOv8 implementation and documentation
-  - Model: YOLOv8n (nano) for optimal Raspberry Pi performance
+  - Model: YOLOv8s (small) for optimal Raspberry Pi performance
 
 - **OpenCV**: https://opencv.org/
   - Computer vision library for camera capture and image processing
