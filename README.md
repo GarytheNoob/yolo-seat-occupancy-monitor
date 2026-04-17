@@ -1,13 +1,25 @@
 # YOLO Seat Occupancy Monitor
 
+This is part of the group project of the course [ENGG1101: Engineering
+Challenges](https://activelearning.tech/engg-1101/)
+at the University of Hong Kong (HKU).
+
 Year 2025-2026, Group J4.
 
-This is part of the group project of the course ENGG1101 "Engineering Challenge"
-at the University of Hong Kong.
+**Group members**:
+
+- Li Ming Chak
+- Geng Yule
+- Luo Dian
+- Zhang Xuecheng
+- Zhu Siyuan
+- Xu Chenyang
 
 ## Overview
 
-A real-time seat occupancy monitoring system using YOLOv8 person detection and center-point occupancy checking. Designed to run on Raspberry Pi 5 with a webcam.
+A real-time seat occupancy monitoring system using YOLOv8 person detection and
+center-point occupancy checking. Designed to run on Raspberry Pi 5 with a
+webcam.
 
 ## Features
 
@@ -48,7 +60,9 @@ pip install -r requirements.txt
 cp config.example.json config.json
 ```
 
-**Note:** `config.json` is gitignored (user-specific). The example file contains default values to get you started. You'll configure your specific seats later using the web interface or setup helper.
+**Note:** `config.json` is gitignored (user-specific). The example file contains
+default values to get you started. You'll configure your specific seats later
+using the web interface or setup helper.
 
 **First run:** YOLOv8s model (~22MB) will be automatically downloaded.
 
@@ -56,7 +70,8 @@ cp config.example.json config.json
 
 For Raspberry Pi, follow these steps carefully to avoid installation issues:
 
-**Important:** This project runs on CPU only - **NO NVIDIA CUDA required**. PyTorch will run in CPU mode on Raspberry Pi.
+**Important:** This project runs on CPU only - **NO NVIDIA CUDA required**.
+PyTorch will run in CPU mode on Raspberry Pi.
 
 #### Option 1: Automated Installation (Recommended)
 
@@ -231,7 +246,8 @@ The web server provides REST API endpoints for integration:
 
 By default, the server binds to `0.0.0.0:5000` (accessible from any device on your network).
 
-**Security Note:** This is designed for local network use. If you need to expose it to the internet, consider adding authentication.
+**Security Note:** This is designed for local network use. If you need to expose
+it to the internet, consider adding authentication.
 
 ## Configuration
 
@@ -383,7 +399,9 @@ Part of ENGG1101 group project. For educational purposes.
 
 ## Acknowledgments
 
-This project was developed for ENGG1101 "Engineering Challenge" at the University of Hong Kong.
+This project was developed for ENGG1101 "Engineering Challenges" at the University of Hong Kong.
+
+Educational purposes only. Not for commercial use.
 
 **Technologies used:**
 
